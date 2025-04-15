@@ -1,3 +1,5 @@
+import getTrackDirectives from "./directives/track";
+
 /**
  * 根据业务需求，处理上报的地址信息
  * @param {string} path 处理之前的地址path
@@ -30,8 +32,6 @@ export default {
     };
 
     const config = Object.assign(defaultConfig, options);
-
-    Vue.prototype.__trackUpConfig__ = config;
 
     /**
      *
@@ -113,32 +113,6 @@ export default {
     };
 
     // 自定义指令 v-track
-    Vue.directive("track", {
-      bind(el, binding) {
-        const eventType = binding.arg || "click";
-        el._value = binding.value;
-        const eventHandler = () => {
-          config.trackEvent(
-            getTrackData({
-              ...el._value,
-              url: config.getTrackUpPath(location.hash),
-            })
-          );
-        };
-
-        el._trackHandler = eventHandler;
-        el.addEventListener(eventType, eventHandler);
-      },
-      unbind(el, binding) {
-        const eventType = binding.arg || "click";
-        el.removeEventListener(eventType, el._trackHandler);
-        delete el._trackHandler;
-        delete el._value;
-      },
-      // 避免传入的值是动态值导致的参数不更新
-      update(el, binding) {
-        el._value = binding.value;
-      },
-    });
+    Vue.directive("track", getTrackDirectives(config, getTrackData));
   },
 };
