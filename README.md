@@ -1,24 +1,12 @@
 # vue2-track-library
 
-## Project setup
-```
-npm install
-```
+## 说明
+这个一个基于vue2的埋点插件，支持登陆登出上报，指令上报，函数上报等方式
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## 计划功能
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+1. 埋点功能实现
+   1. 登陆登出函数
+   2. 指令上报支持
+   3. 函数上报支持
+2. 记录页面性能（未完成）
