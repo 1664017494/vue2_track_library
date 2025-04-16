@@ -2,8 +2,8 @@
   "name": "vue2-track-library",
   "version": "0.1.0",
   "private": true,
-  "main1": "dist/vue2-track-library.umd.min.js",
-  "main": "src/index.js",
+  "main": "dist/vue2-track-library.umd.min.js",
+  "main2": "src/index.js",
   "module": "dist/vue2-track-library.esm.js",
   "scripts": {
     "serve": "vue-cli-service serve",
