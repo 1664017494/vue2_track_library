@@ -1,6 +1,15 @@
 import getTrackDirectives from "./directives/track";
 
 /**
+ * @typedef {import('./type/index').PropConfigType} PropConfigType
+ * @typedef {import('./type/index').OtherConfigProperty} OtherConfigProperty
+ * @typedef {import('./type/index').BaseTrackData} BaseTrackData
+ * @typedef {import('./type/index').UserInfo} UserInfo
+ * @typedef {import('./type/index').Config} Config
+ *
+ */
+
+/**
  * 根据业务需求，处理上报的地址信息
  * @param {string} path 处理之前的地址path
  * @returns 处理之后的path
@@ -13,25 +22,31 @@ export default {
   /**
    *
    * @param {Vue} Vue
-   * @param {Config} options
+   * @param {PropConfigType} options
    */
   install(Vue, options = {}) {
     /** @type {UserInfo} */
     let userInfo = null;
 
     // 默认配置
-    /** @type {Config} */
+    /** @type {OtherConfigProperty} */
     const defaultConfig = {
       trackEvent: console.log, // 默认使用console.log演示，实际替换为上报API
       router: null,
       projectCode: null,
-      getUserInfo: function () {},
-      isLogin: function () {},
-      routerAutoTrackUp: () => true,
+      getUserInfo: function () {
+        console.error(
+          "埋点插件：当前传入获取用户信息的函数，请补充 getUserInfo 函数"
+        );
+        return;
+      },
+      isLogin: () => {
+        console.error("埋点插件：当前未判断用户是否登录，请补充 isLogin 函数");
+        return false;
+      },
+      routerShouldTrackUp: () => true,
       getTrackUpPath,
     };
-
-    const config = Object.assign(defaultConfig, options);
 
     /**
      *
@@ -40,8 +55,19 @@ export default {
      * @returns 上报接口参数
      */
     function getTrackData(trackInfo, otherInfo) {
-      return { ...userInfo, ...trackInfo, ...otherInfo };
+      if (options.getTrackData) {
+        return options.getTrackData({
+          ...userInfo,
+          ...trackInfo,
+          ...otherInfo,
+        });
+      } else {
+        return { ...userInfo, ...trackInfo, ...otherInfo };
+      }
     }
+
+    /** @type {Config} */
+    const config = Object.assign(defaultConfig, options, { getTrackData });
 
     async function setUserInfo() {
       if (userInfo) return;
@@ -49,7 +75,7 @@ export default {
       userInfo = await config.getUserInfo();
 
       config.trackEvent(
-        getTrackData({
+        config.getTrackData({
           url: config.getTrackUpPath(location.hash),
           eventName: `Common_Login`,
           remark: "",
@@ -64,9 +90,9 @@ export default {
     // 路由埋点
     if (config.router) {
       config.router.beforeEach((to, from, next) => {
-        if (userInfo && config.routerAutoTrackUp()) {
+        if (userInfo && config.routerShouldTrackUp(to, from)) {
           config.trackEvent(
-            getTrackData({
+            config.getTrackData({
               url: config.getTrackUpPath(to.path),
               eventName: `Common_Jump`,
               remark: "",
@@ -89,7 +115,7 @@ export default {
      */
     Vue.prototype.trackEnd = function () {
       config.trackEvent(
-        getTrackData({
+        config.getTrackData({
           url: config.getTrackUpPath(location.path),
           eventName: `Common_Logout`,
           remark: "",
@@ -104,7 +130,7 @@ export default {
      */
     Vue.prototype.trackUp = function (eventName, remark) {
       config.trackEvent(
-        getTrackData({
+        config.getTrackData({
           url: config.getTrackUpPath(location.hash),
           eventName,
           remark,
@@ -113,6 +139,8 @@ export default {
     };
 
     // 自定义指令 v-track
-    Vue.directive("track", getTrackDirectives(config, getTrackData));
+    Vue.directive("track", getTrackDirectives(config));
+
+    config.registerFunc(Vue, config);
   },
 };

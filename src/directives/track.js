@@ -1,11 +1,11 @@
-function getTrackDirectives(config, getTrackData) {
+function getTrackDirectives(config) {
   return {
     bind(el, binding) {
       const eventType = binding.arg || "click";
       el._value = binding.value;
       const eventHandler = () => {
         config.trackEvent(
-          getTrackData({
+          config.getTrackData({
             ...el._value,
             url: config.getTrackUpPath(location.hash),
           })
